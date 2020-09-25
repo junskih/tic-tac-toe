@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+  </head>
+  <body>
+    <div id="top-container">
+      <div class="player-info">
+        <p contenteditable="true">Player X</p>
+        <p>0 points</p>
+      </div>
+      <div id="board">
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+      </div>
+      <div class="player-info">
+        <p contenteditable="true">Player O</p>
+        <p>0 points</p>
+      </div>
+    </div>
+    
+    <div id="bottom-container">
+      <p id="round-info">Round 0/3</p>
+      
+      <div class="control-container">
+        <div>1 player</div>
+        <label class="switch">
+          <input id="player-choice" type="checkbox">
+          <span class="slider round"></span>
+        </label>
+        <div>2 players</div>
+      </div>
+      
+      <div class="control-container">
+        <div class="control-group">
+          <label id="round-label" for="rounds">Rounds: 3</label>
+          <input id="round-slider" type="range" name="rounds" min="3" max="10" value="3">
+        </div>
+        
+        <div class="control-group">
+          <label id="board-size-label" for="board-size">Board size: 3</label>
+          <input id="board-size-slider" type="range" name="board-size" min="3" max="5" value="3">
+        </div>
+      </div>
+      
+      <button id="start-button">Start</button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
