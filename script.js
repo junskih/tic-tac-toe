@@ -79,14 +79,20 @@ const Game = (() => {
 
         // TODO: add AI moves
         if (_isAgainstAI) {
-          //console.log("AI moves here");
+          addAIMark();
         }
       }
     }
   };
+
+  const addAIMark = () => {
+    
+    return;
+  };
   
   const endRound = (roundWinner) => {
     Display.disableBoard();
+
     if (roundWinner) {
       roundWinner.addPoint();
       Display.updatePoints([playerX.getPoints(), playerO.getPoints()]);
@@ -319,7 +325,7 @@ const Display = (() => {
   const switchToStartButton = () => {
     _startButton.removeEventListener("click", Game.reset);
     _startButton.addEventListener("click", Game.init);
-    _startButton.textContent = "Start";
+    _startButton.textContent = "Play";
   };
 
   const switchToResetButton = () => {

@@ -1,63 +1,65 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="./styles.css" rel="stylesheet">
+    <meta charset='utf-8'>
+    <link href='https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@300;400;500;600;700;800&display=swap' rel='stylesheet'>
+    <link href='./styles.css' rel='stylesheet'>
   </head>
   <body>
-    <div id="top-container">
-      <div class="player-info">
-        <p contenteditable="true">Player X</p>
-        <p></p>
-      </div>
-
-      <div id="board">
-        <div class="board-cell"></div>
-        <div class="board-cell"></div>
-        <div class="board-cell"></div>
-        <div class="board-cell"></div>
-        <div class="board-cell"></div>
-        <div class="board-cell"></div>
-        <div class="board-cell"></div>
-        <div class="board-cell"></div>
-        <div class="board-cell"></div>
+    <div id='top-container'>
+      <div id='board'>
+        <div class='board-cell'></div>
+        <div class='board-cell'></div>
+        <div class='board-cell'></div>
+        <div class='board-cell'></div>
+        <div class='board-cell'></div>
+        <div class='board-cell'></div>
+        <div class='board-cell'></div>
+        <div class='board-cell'></div>
+        <div class='board-cell'></div>
       </div>
       
-      <div class="player-info">
-        <p contenteditable="true">Player O</p>
-        <p></p>
+      <div id='player-info-container'>
+        <div class='player-info'>
+          <p class='player-name' contenteditable='true'>Player X</p>
+          <p class='player-points'></p>
+        </div>
+
+        <div class='player-info'>
+          <p class='player-name' contenteditable='true'>Player O</p>
+          <p class='player-points'></p>
+        </div>
       </div>
     </div>
     
-    <div id="bottom-container">
-      <p id="round-info">Round 0/3</p>
+    <div id='bottom-container'>
+      <p id='round-info'>Round 0/3</p>
       
-      <div class="control-container">
+      <div class='control-container'>
         <div>1 player</div>
-        <label class="switch">
-          <input id="player-choice" type="checkbox">
-          <span class="slider round"></span>
+        <label class='switch'>
+          <input id='player-choice' type='checkbox'>
+          <span class='slider round'></span>
         </label>
         <div>2 players</div>
       </div>
       
-      <div class="control-container">
-        <div class="control-group">
-          <label id="round-label" for="rounds">Rounds: 3</label>
-          <input id="round-slider" type="range" name="rounds" min="3" max="10" value="3">
+      <div class='control-container'>
+        <div class='control-group'>
+          <label id='round-label' for='rounds'>Rounds: 3</label>
+          <input id='round-slider' type='range' name='rounds' min='3' max='10' value='3'>
         </div>
         
-        <div class="control-group">
-          <label id="board-size-label" for="board-size">Board size: 3</label>
-          <input id="board-size-slider" type="range" name="board-size" min="3" max="5" value="3">
+        <div class='control-group'>
+          <label id='board-size-label' for='board-size'>Board size: 3</label>
+          <input id='board-size-slider' type='range' name='board-size' min='3' max='5' value='3'>
         </div>
       </div>
       
-      <button id="start-button">Start</button>
-      <h2 id="message">Message</h2>
+      <button id='start-button'>Play</button>
+      <h2 id='message'>Message</h2>
     </div>
 
-    <script src="./script.js"></script>
+    <script src='./script.js'></script>
   </body>
 </html>

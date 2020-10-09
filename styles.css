@@ -1,31 +1,90 @@
+/* Styling range inputs: https://css-tricks.com/styling-cross-browser-compatible-range-inputs-css/ */
+
 :root {
   --board-size: 3;
   --background-color: #afd5aa;
   --board-background-color: #f0f2ef;
   --board-border-color: black;
   --board-mark-color: black;
+  --highlight-color: #7EFF6D;
+  --gradient-start-color: rgba(60, 116, 123, 1);
+  --gradient-middle-color: rgba(40, 102, 110, 1);
+  --gradient-end-color: rgba(3, 63, 99, 1);
   --slider-duration: 0.2s;
   --slider-off-color: white;
-  --slider-on-color: black;
+  --slider-on-color: var(--highlight-color);
   --slider-background-color: grey;
+  --board-relative-size: min(65vh, 65vw);
+}
+
+html {
+  height: 100%;
 }
 
 body {
-  background: var(--background-color);
+  background: linear-gradient(0deg, var(--gradient-start-color) 0%, var(--gradient-middle-color) 50%, var(--gradient-end-color) 100%);
   font-family: 'Merriweather Sans', sans-serif;
+  color: white;
+  text-shadow: 1px 1px 2px black;
 }
 
 #top-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   width: 100%;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(var(--board-size), 1fr);
+  grid-template-rows: repeat(var(--board-size), 1fr);
+  grid-gap: 0.25em;
+  width: var(--board-relative-size);
+  height: var(--board-relative-size);
+}
+
+.board-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  font-size: min(15vh, 15vw);
+  background: var(--board-background-color);
+  color: var(--board-mark-color);
+  border-radius: 1%;
+}
+
+#player-info-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 300px;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.9em;
+  margin: 0 1em;
+}
+
+.player-name {
+  font-size: 1.5em;
+  margin: 0.5em 0;
+}
+
+.player-points {
+  font-size: 1.2em;
+  margin: 0.5em 0;
 }
 
 #bottom-container {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 1em 0;
 }
 
 #round-info {
@@ -34,6 +93,12 @@ body {
 
 .control-container {
   display: flex;
+  margin: 0 0 1em 0;
+  font-size: 1.1em;
+}
+
+.control-container > div {
+  margin: 0 0.75em;
 }
 
 .control-group {
@@ -42,29 +107,68 @@ body {
   align-items: center;
 }
 
-#board {
-  display: grid;
-  grid-template-columns: repeat(var(--board-size), 1fr);
-  grid-template-rows: repeat(var(--board-size), 1fr);
-  grid-gap: 0.25em;
-  width: 60vw;
-  height: 60vw;
+button:focus {
+  outline: none;
 }
 
-.board-cell {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 3em;
-  background: var(--board-background-color);
-  color: var(--board-mark-color);
+#start-button {
+  background: var(--highlight-color);
+  border: none;
+  border-radius: 5%;
+  padding: 0.5em 1em;
+  font-size: 1.5em;
+  color: white;
+  text-shadow: 1px 1px 3px black;
+  transition: transform 0.1s;
+  cursor: pointer;
+}
+
+#start-button:hover {
+  transform: scale(1.1);
+}
+
+#start-button:active {
+  transform: scale(0.9);
 }
 
 #message {
+  background: rgba(103, 103, 103, 0.75);
+  width: 100%;
+  text-align: center;
   visibility: hidden;
   position: absolute;
   top: 5em;
-  font-size: 1em;
+  font-size: 1.5em;
+}
+
+/* RANGE INPUT */
+input[type=range] {
+  -webkit-appearance: none;
+  background: transparent;
+  margin-top: 0.5em;
+}
+
+input[type=range]:focus {
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: var(--gradient-end-color);
+  height: 1.5em;
+  width: 1em;
+  margin-top: -0.5em;
+  border-radius: 3px;
+  box-shadow: 1px 1px 2px black;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 0.5em;
+  cursor: pointer;
+  background: white;
+  border-radius: 1.3px;
+  box-shadow: 0 0 1px black;
 }
 
 /* SLIDER */
@@ -102,11 +206,11 @@ body {
   left: 0.2em;
   bottom: 0.2em;
   transition: var(--slider-duration);
-  background-color: var(--slider-background-color);
+  background-color: var(--gradient-end-color);;
 }
 
 input:checked + .slider {
-  background-color: var(--slider-on-color);
+  background-color: var(--slider-off-color);
 }
 
 input:focus + .slider {
@@ -114,7 +218,7 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(1.5em);
+  transform: translateX(1.4em);
 }
 
 /* Rounded sliders */
