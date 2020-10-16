@@ -1,4 +1,7 @@
 // Getting index of child node: https://stackoverflow.com/questions/5913927/get-child-node-index
+// Minimax algorithm for tic tac toe: https://www.freecodecamp.org/news/how-to-make-your-tic-tac-toe-game-unbeatable-by-using-the-minimax-algorithm-9d690bad4b37/
+// Getting indexes of max elements: https://stackoverflow.com/questions/55284833/javascript-return-all-indexes-of-highest-values-in-an-array
+// Finding object with max attribute: https://stackoverflow.com/questions/4020796/finding-the-max-value-of-an-attribute-in-an-array-of-objects
 "use strict";
 
 // Player mark "enum"
@@ -59,35 +62,45 @@ const Game = (() => {
   };
 
   const addMark = (e) => {
-    let child = e.target;
-    if (child.className === "board-cell") {
-      // Get index of cell
-      let index = Array.prototype.indexOf.call(child.parentNode.children, child);
+    let index;
 
-      if (Board.isEmptyAt(index)) {
-        let mark = _isPlayerXTurn ? playerX.getMark() : playerO.getMark();
-        Board.addMarkAt(mark, index);
-        Display.renderBoard();
+    if (e instanceof Event) {
+      let child = e.target;
+      if (child.className === "board-cell") {
+        // Get index of cell
+        index = Array.prototype.indexOf.call(child.parentNode.children, child);
+      }
+    } else {
+      index = e;
+    }
 
-        if (Board.hasStraight()) {
-          let roundWinner = _isPlayerXTurn ? playerX : playerO;
-          endRound(roundWinner);
-        } else if (Board.isFull()) {
-          endRound();
-        }
-        _isPlayerXTurn = !_isPlayerXTurn;
+    if (Board.isEmptyAt(index)) {
+      let mark = _isPlayerXTurn ? playerX.getMark() : playerO.getMark();
+      Board.setMarkAt(mark, index);
+      Display.renderBoard();
 
-        // TODO: add AI moves
-        if (_isAgainstAI) {
-          addAIMark();
-        }
+      if (Board.hasStraightSimple()) {
+        let roundWinner = _isPlayerXTurn ? playerX : playerO;
+        endRound(roundWinner);
+        return;
+      } else if (Board.isFull()) {
+        endRound();
+        return;
+      }
+      _isPlayerXTurn = !_isPlayerXTurn;
+
+      if (!_isPlayerXTurn && _isAgainstAI) {
+        setTimeout(addAIMark, 0);
       }
     }
   };
 
   const addAIMark = () => {
-    
-    return;
+    // Choose optimal move using the minimax algorithm
+    let move = Board.minimax(playerO);
+    console.log(move);
+    addMark(move.index);
+    Board.clearMoves();
   };
   
   const endRound = (roundWinner) => {
@@ -148,9 +161,11 @@ const Board = (() => {
   // TODO: get initial size from slider
   let _size = 3;
   let _marks;
+  let _moves = [];
   
   const getSize = () => _size;
   const getMarks = () => _marks;
+  const getMarkAt = (index) => _marks[index];
   
   const setSize = (size) => {
     _size = size;
@@ -171,6 +186,14 @@ const Board = (() => {
   
   const isFull = () => {
     return _marks.indexOf("") === -1;
+  };
+
+  const isEmptyAt = (index) => {
+    return _marks[index] === "";
+  };
+  
+  const setMarkAt = (mark, index) => {
+    _marks[index] = mark;
   };
   
   const hasStraight = () => {
@@ -220,16 +243,70 @@ const Board = (() => {
 
     return rowStraight || colStraight || diagStraight;
   };
-  
-  const isEmptyAt = (index) => {
-    return _marks[index] === "";
+
+  const hasStraightSimple = () => {
+    return (
+      (_marks[0] == _marks[1] && _marks[1] == _marks[2] && _marks[0] != "") ||
+      (_marks[3] == _marks[4] && _marks[4] == _marks[5] && _marks[3] != "") ||
+      (_marks[6] == _marks[7] && _marks[7] == _marks[8] && _marks[6] != "") ||
+      (_marks[0] == _marks[3] && _marks[3] == _marks[6] && _marks[0] != "") ||
+      (_marks[1] == _marks[4] && _marks[4] == _marks[7] && _marks[1] != "") ||
+      (_marks[2] == _marks[5] && _marks[5] == _marks[8] && _marks[2] != "") ||
+      (_marks[0] == _marks[4] && _marks[4] == _marks[8] && _marks[0] != "") ||
+      (_marks[2] == _marks[4] && _marks[4] == _marks[6] && _marks[2] != "")
+      );
+  };
+
+  const minimax = (player) => {
+    // Score board end state based on winner
+    if (hasStraightSimple()) {
+      return player === playerX ? { score: -1 } : { score: 1 };
+
+    } else if (isFull()) {
+      return { score: 0 };
+    }
+
+    // Loop through available spots
+    for (let i = 0; i < _size ** 2; i++) {
+      let move = {
+        index: i
+      };
+
+      if (getMarkAt(i) === "") {
+        // Add mark of current player to available spot
+        setMarkAt(player.getMark(), i);
+        
+        // Since current board state is not an end state, continue recursively
+        let result = player === playerX ? minimax(playerO) : minimax(playerX);
+        move.score = result.score;
+
+        // Reset spot
+        setMarkAt("", i);
+
+        // Save move
+        _moves.push(move);
+      }
+    }
+
+    // After calculating a score for each move, propagate min or max to upper level
+    let bestScore;
+    let bestMove;
+
+    if (player === playerX) {
+      bestScore = Math.min.apply(null, _moves.map(move => move.score));
+
+    } else if (player === playerO) {
+      bestScore = Math.max.apply(null, _moves.map(move => move.score));
+    }
+    bestMove = _moves.find(move => move.score == bestScore);
+    return bestMove;
   };
   
-  const addMarkAt = (mark, index) => {
-    _marks[index] = mark;
+  const clearMoves = () => {
+    _moves = [];
   };
   
-  return { getSize, getMarks, setSize, init, reset, isFull, hasStraight, isEmptyAt, addMarkAt };
+  return { getSize, getMarks, getMarkAt, setSize, init, reset, isFull, isEmptyAt, setMarkAt, hasStraight, hasStraightSimple, minimax, clearMoves };
 })();
 
 // Display/DOM controller module
