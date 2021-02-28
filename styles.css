@@ -2,11 +2,11 @@
 
 :root {
   --board-size: 3;
-  --background-color: #afd5aa;
   --board-background-color: #f0f2ef;
   --board-border-color: black;
   --board-mark-color: black;
   --highlight-color: #7EFF6D;
+  --active-background-color: rgba(46, 74, 77, 1);
   --gradient-start-color: rgba(60, 116, 123, 1);
   --gradient-middle-color: rgba(40, 102, 110, 1);
   --gradient-end-color: rgba(3, 63, 99, 1);
@@ -14,7 +14,7 @@
   --slider-off-color: white;
   --slider-on-color: var(--highlight-color);
   --slider-background-color: grey;
-  --board-relative-size: min(65vh, 65vw);
+  --board-relative-size: min(60vh, 65vw);
 }
 
 html {
@@ -42,14 +42,17 @@ body {
   grid-gap: 0.25em;
   width: var(--board-relative-size);
   height: var(--board-relative-size);
+  min-width: 325px;
+  min-height: 325px;
 }
 
 .board-cell {
   display: flex;
+  flex: 0 1 auto;
   justify-content: center;
   align-items: center;
   padding: 0;
-  font-size: min(15vh, 15vw);
+  font-size: min(8vh, 8vw);
   background: var(--board-background-color);
   color: var(--board-mark-color);
   border-radius: 1%;
@@ -73,6 +76,17 @@ body {
 .player-name {
   font-size: 1.5em;
   margin: 0.5em 0;
+  padding: 0.15em 0.25em;
+  border-radius: 0.2em;
+  transition: background-color var(--slider-duration);
+}
+
+.player-name:hover, .player-name:focus, .player-name--active {
+  background-color: var(--active-background-color);
+}
+
+.player-name--hover-disabled {
+  pointer-events: none;
 }
 
 .player-points {
@@ -97,14 +111,22 @@ body {
   font-size: 1.1em;
 }
 
-.control-container > div {
+.player-count {
   margin: 0 0.75em;
+  padding: 0.25em;
+  border-radius: 0.2em;
+  transition: background-color var(--slider-duration);
+}
+
+.player-count--active {
+  background-color: var(--active-background-color);
 }
 
 .control-group {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 0 1em;
 }
 
 button:focus {
@@ -218,7 +240,7 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(1.4em);
+  transform: translateX(1.5em);
 }
 
 /* Rounded sliders */
