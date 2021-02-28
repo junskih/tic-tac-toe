@@ -2,6 +2,7 @@
 // Minimax algorithm for tic tac toe: https://www.freecodecamp.org/news/how-to-make-your-tic-tac-toe-game-unbeatable-by-using-the-minimax-algorithm-9d690bad4b37/
 // Getting indexes of max elements: https://stackoverflow.com/questions/55284833/javascript-return-all-indexes-of-highest-values-in-an-array
 // Finding object with max attribute: https://stackoverflow.com/questions/4020796/finding-the-max-value-of-an-attribute-in-an-array-of-objects
+// Shuffling array: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
 "use strict";
 
 // Player mark "enum"
@@ -10,166 +11,32 @@ const playerMarks = {
   O: "O"
 };
 
-// Game module
-const Game = (() => {
-  let _isOver;
-  let _isRoundOver;
-  let _currRound;
-  let _maxRound;
-  let _isPlayerXTurn;
-  let _isAgainstAI;
+// Player factory function
+const Player = (mark) => {
+  const _mark = mark;
+  let _name;
+  let _points = 0;
   
-  const init = (e) => {
-    // TODO: unnecessary "states"?
-    _isOver = false;
-    _isRoundOver = false;
-    _currRound = 0;
-    _maxRound = Display.getMaxRound();
-    _isPlayerXTurn = true;
-    _isAgainstAI = Display.isAgainstAI();
-
-    Display.hideSettings();
-
-    Board.setSize(Display.getBoardSize());
-    Board.init();
-    
-    playerX.resetPoints();
-    playerO.resetPoints();
-    Display.updatePoints([playerX.getPoints(), playerO.getPoints()]);
-
-    Display.toggleNameEditing();
-    let names = Display.getPlayerNames();
-    playerX.setName(names[0]);
-    playerO.setName(names[1]);
-    
-    initRound();
-  };
+  const getMark = () => _mark;
+  const getName = () => _name;
+  const setName = (name) => _name = name;
+  const getPoints = () => _points;
+  const addPoint = () => _points++;
+  const resetPoints = () => _points = 0;
   
-  const initRound = () => {
-    Display.hideMessage();
-    Board.reset();
-    Display.renderBoard();
-    _currRound++;
-    Display.setRound(_currRound, _maxRound);
-    Display.enableBoard();
-  };
-  
-  const setBoardSize = (e) => {
-    let oldSize = Board.getSize();
-    let newSize = e.target.value
-    Board.setSize(newSize);
-    Display.setBoardSize(oldSize, newSize);
-  };
+  return { getMark, getName, setName, getPoints, addPoint, resetPoints };
+};
 
-  const addMark = (e) => {
-    let index;
-
-    if (e instanceof Event) {
-      let child = e.target;
-      if (child.className === "board-cell") {
-        // Get index of cell
-        index = Array.prototype.indexOf.call(child.parentNode.children, child);
-      }
-    } else {
-      index = e;
-    }
-
-    if (Board.isEmptyAt(index)) {
-      let mark = _isPlayerXTurn ? playerX.getMark() : playerO.getMark();
-      Board.setMarkAt(mark, index);
-      Display.renderBoard();
-
-      if (Board.hasStraightSimple()) {
-        let roundWinner = _isPlayerXTurn ? playerX : playerO;
-        endRound(roundWinner);
-        return;
-      } else if (Board.isFull()) {
-        endRound();
-        return;
-      }
-      _isPlayerXTurn = !_isPlayerXTurn;
-
-      if (!_isPlayerXTurn && _isAgainstAI) {
-        setTimeout(addAIMark, 0);
-      }
-    }
-  };
-
-  const addAIMark = () => {
-    // Choose optimal move using the minimax algorithm
-    let move = Board.minimax(playerO);
-    console.log(move);
-    addMark(move.index);
-    Board.clearMoves();
-  };
-  
-  const endRound = (roundWinner) => {
-    Display.disableBoard();
-
-    if (roundWinner) {
-      roundWinner.addPoint();
-      Display.updatePoints([playerX.getPoints(), playerO.getPoints()]);
-    }
-
-    if (_currRound === _maxRound) {
-      end(roundWinner);
-    } else {
-      let message = roundWinner ? `${roundWinner.getName()} wins the round!` : `It's a draw!`;
-      Display.showMessage(message);
-      window.setTimeout(initRound, 1500);
-    }
-  };
-
-  const end = (roundWinner) => {
-    let message;
-    let gameWinner = playerX.getPoints() > playerO.getPoints() ? playerX : playerO;
-    gameWinner = playerX.getPoints() !== playerO.getPoints() ? gameWinner : null;
-
-    if (!roundWinner && !gameWinner) {
-      message = `The game is a draw!`;
-    } else if (!roundWinner && gameWinner) {
-      message = `The round is a draw but ${gameWinner.getName()} wins the game!`;
-    } else if (roundWinner && !gameWinner) {
-      message = `${roundWinner.getName()} wins the round, but the game is a draw!`;
-    } else if (roundWinner && roundWinner !== gameWinner) {
-      message = `${roundWinner.getName()} wins the round, but ${gameWinner.getName()} wins the game!`;
-    } else if (roundWinner === gameWinner) {
-      message = `${roundWinner.getName()} wins the round and the game!`;
-    }
-    Display.showMessage(message);
-  };
-  
-  const reset = (e) => {
-    Display.hideMessage();
-    Board.reset();
-    Display.renderBoard();
-    Display.disableBoard();
-    Display.showSettings();
-    Display.updatePoints();
-    Display.toggleNameEditing();
-  };
-  
-  const isOver = () => _isOver;
-  const getCurrRound = () => _currRound;
-  const getMaxRound = () => _maxRound;
-  
-  return { init, initRound, end, reset, setBoardSize, addMark, isOver, getCurrRound, getMaxRound };
-})();
-
-// Board module
-const Board = (() => {
+// Board factory function (need multiple boards for minimax/negamax)
+const Board = (marks) => {
   // TODO: get initial size from slider
   let _size = 3;
-  let _marks;
-  let _moves = [];
+  let _marks = marks;
   
   const getSize = () => _size;
   const getMarks = () => _marks;
   const getMarkAt = (index) => _marks[index];
-  
-  const setSize = (size) => {
-    _size = size;
-  };
+  const setSize = (size) => _size = size;
 
   const init = () => {
     _marks = [];
@@ -197,6 +64,7 @@ const Board = (() => {
   };
   
   const hasStraight = () => {
+    // Checks board of any size for winning states
     let prev, next;
     let rowStraight = false;
     let colStraight = false;
@@ -245,6 +113,7 @@ const Board = (() => {
   };
 
   const hasStraightSimple = () => {
+    // For 3x3 board only
     return (
       (_marks[0] == _marks[1] && _marks[1] == _marks[2] && _marks[0] != "") ||
       (_marks[3] == _marks[4] && _marks[4] == _marks[5] && _marks[3] != "") ||
@@ -256,57 +125,278 @@ const Board = (() => {
       (_marks[2] == _marks[4] && _marks[4] == _marks[6] && _marks[2] != "")
       );
   };
+  
+  return { getSize, getMarks, getMarkAt, setSize, init, reset, isFull, isEmptyAt, setMarkAt, hasStraight, hasStraightSimple };
+};
 
-  const minimax = (player) => {
-    // Score board end state based on winner
-    if (hasStraightSimple()) {
-      return player === playerX ? { score: -1 } : { score: 1 };
+// Game module
+const Game = (() => {
+  const _board = Board(['','','','','','','','','']);
+  const _playerX = Player(playerMarks.X);
+  const _playerO = Player(playerMarks.O);
 
-    } else if (isFull()) {
-      return { score: 0 };
+  let _isOver;
+  let _currRound;
+  let _maxRound;
+  let _isPlayerXTurn;
+  let _isAgainstAI;
+  let _moves = new Map();
+  
+  const init = (e) => {
+    // TODO: unnecessary "states"?
+    _isOver = false;
+    _currRound = 0;
+    _maxRound = Display.getMaxRound();
+    _isPlayerXTurn = true;
+    _isAgainstAI = Display.isAgainstAI();
+
+    Display.hideSettings();
+
+    _board.setSize(Display.getBoardSize());
+    _board.init();
+    
+    _playerX.resetPoints();
+    _playerO.resetPoints();
+    Display.updatePoints([_playerX.getPoints(), _playerO.getPoints()]);
+
+    Display.toggleNameEditing();
+    let names = Display.getPlayerNames();
+    _playerX.setName(names[0]);
+    _playerO.setName(names[1]);
+    
+    initRound();
+  };
+  
+  const initRound = () => {
+    _currRound++;
+    _isPlayerXTurn = true;
+    _board.reset();
+    Display.hideMessage();
+    Display.renderBoard(_board.getMarks());
+    Display.setRound(_currRound, _maxRound);
+    Display.highlightPlayerTurn(_isPlayerXTurn);
+    Display.enableBoard();
+  };
+  
+  const setBoardSize = (e) => {
+    let oldSize = _board.getSize();
+    let newSize = e.target.value
+    _board.setSize(newSize);
+    Display.setBoardSize(oldSize, newSize);
+  };
+
+  const handleBoardClick = (e) => {
+    if (e.target.classList.contains('board-cell')) {
+      let index = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
+      addMark(index);
+    } else {
+      console.log('Board clicked but something went wrong');
     }
+  };
 
-    // Loop through available spots
-    for (let i = 0; i < _size ** 2; i++) {
-      let move = {
-        index: i
-      };
+  const addMark = (index) => {
+    if (!_board.isEmptyAt(index)) return;
 
-      if (getMarkAt(i) === "") {
-        // Add mark of current player to available spot
-        setMarkAt(player.getMark(), i);
-        
-        // Since current board state is not an end state, continue recursively
-        let result = player === playerX ? minimax(playerO) : minimax(playerX);
-        move.score = result.score;
+    let mark = _isPlayerXTurn ? _playerX.getMark() : _playerO.getMark();
+    _board.setMarkAt(mark, index);
+    Display.renderBoard(_board.getMarks());
 
-        // Reset spot
-        setMarkAt("", i);
+    if (_board.hasStraight()) {
+      let roundWinner = _isPlayerXTurn ? _playerX : _playerO;
+      endRound(roundWinner);
+    } else if (_board.isFull()) {
+      endRound();
+    } else {
+      _isPlayerXTurn = !_isPlayerXTurn;
+      Display.highlightPlayerTurn(_isPlayerXTurn);
 
-        // Save move
-        _moves.push(move);
+      if (!_isPlayerXTurn && _isAgainstAI) {
+        // Wait for player's mark to render
+        setTimeout(addAIMark, 0);
       }
     }
+  };
 
-    // After calculating a score for each move, propagate min or max to upper level
-    let bestScore;
-    let bestMove;
+  const addAIMark = () => {
+    Display.disableBoard();
+    let index = minimax(_board, 0, true, -Infinity, Infinity);
+    //let index = negamax(_board, 0, true, -Infinity, Infinity);
+    addMark(index);
+    Display.enableBoard();
+  };
 
-    if (player === playerX) {
-      bestScore = Math.min.apply(null, _moves.map(move => move.score));
-
-    } else if (player === playerO) {
-      bestScore = Math.max.apply(null, _moves.map(move => move.score));
+  // This doesnt work well for whatever reason
+  /*
+  const negamax = (board, depth, maximize, alpha, beta) => {
+    if (depth === 0) _moves.clear();
+    
+    // Terminal node, return node value
+    if (board.hasStraight()) {
+      return maximize ? 100 - depth : depth - 100;
+    } else if (board.isFull()) {
+      return 0;
     }
-    bestMove = _moves.find(move => move.score == bestScore);
-    return bestMove;
+
+    // Non-terminal node
+    let value;
+    let player;
+    let newBoard;
+
+    for (const [index, mark] of board.getMarks().entries()) {
+      if (mark !== '') continue;
+      value = -Infinity;
+      player = maximize ? _playerX : _playerO;
+
+      // Simulate next move on new board
+      newBoard = Board(board.getMarks());
+      newBoard.setMarkAt(player.getMark(), index);
+
+      // Continue recursion
+      value = Math.max(value, -negamax(newBoard, depth + 1, !maximize, -beta, -alpha));
+      newBoard.setMarkAt('', index);
+
+      // Prune unnecessary branches
+      alpha = Math.max(alpha, value);
+      if (alpha >= beta) break;
+
+      if (depth === 0) _moves.set(index, value);
+    }
+
+    // Choose move with highest score and return its index
+    if (depth === 0) {
+      let bestScore = -Infinity;
+      let bestMoves = [];
+
+      for (let [key, value] of _moves) {
+        if (value > bestScore) {
+          bestScore = value;
+          bestMoves = [];
+          bestMoves.push(key);
+        } else if (value === bestScore) {
+          bestMoves.push(key);
+        }
+      }
+      return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+    }
+    // At lower depths return node value
+    return value;
+  };
+  */
+
+  const minimax = (board, depth, maximize, alpha, beta) => {
+    if (depth === 0) _moves.clear();
+
+    // Terminal node, return node value
+    if (board.hasStraight()) {
+      if (maximize) return 100 - depth;
+      return depth - 100;
+    } else if (board.isFull()) {
+      return 0;
+    }
+
+    // Non-terminal node
+    let value;
+    let player;
+    let newBoard;
+
+    for (const [index, mark] of board.getMarks().entries()) {
+      if (mark !== '') continue;
+      value = maximize ? Infinity : -Infinity;
+      player = maximize ? _playerX : _playerO;
+
+      // Simulate next move on new board
+      newBoard = Board(board.getMarks());
+      newBoard.setMarkAt(player.getMark(), index);
+      
+      // Continue recursion
+      value = maximize ? Math.min(value, minimax(board, depth + 1, alpha, beta, true))
+      : Math.max(value, minimax(board, depth + 1, alpha, beta, false));
+
+      newBoard.setMarkAt('', index);
+      if (depth === 0) _moves.set(index, value);
+
+      // Prune unnecessary branches
+      if (maximize) {
+        beta = Math.min(beta, value);
+      } else {
+        alpha = Math.max(alpha, value);
+      }
+      if (alpha >= beta) break;
+    }
+
+    // Choose move with highest score and return its index
+    if (depth === 0) {
+      let bestScore = -Infinity;
+      let bestMoves = [];
+
+      for (let [key, value] of _moves) {
+        if (value > bestScore) {
+          bestScore = value;
+          bestMoves = [];
+          bestMoves.push(key);
+        } else if (value === bestScore) {
+          bestMoves.push(key);
+        }
+      }
+      // If multiple moves of same value, choose at random
+      return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+    }
+    // At lower depths return node value
+    return value;
   };
   
-  const clearMoves = () => {
-    _moves = [];
+  const endRound = (roundWinner=undefined) => {
+    Display.disableBoard();
+
+    if (roundWinner) {
+      roundWinner.addPoint();
+      Display.updatePoints([_playerX.getPoints(), _playerO.getPoints()]);
+    }
+
+    if (_currRound === _maxRound) {
+      end(roundWinner);
+    } else {
+      let message = roundWinner ? `${roundWinner.getName()} wins the round!` : `It's a draw!`;
+      Display.showMessage(message);
+      window.setTimeout(initRound, 2000);
+    }
+  };
+
+  const end = (roundWinner=undefined) => {
+    let message;
+    let gameWinner = _playerX.getPoints() > _playerO.getPoints() ? _playerX : _playerO;
+    gameWinner = _playerX.getPoints() !== _playerO.getPoints() ? gameWinner : null;
+
+    if (!roundWinner && !gameWinner) {
+      message = `The game is a draw!`;
+    } else if (!roundWinner && gameWinner) {
+      message = `The round is a draw but ${gameWinner.getName()} wins the game!`;
+    } else if (roundWinner && !gameWinner) {
+      message = `${roundWinner.getName()} wins the round, but the game is a draw!`;
+    } else if (roundWinner && roundWinner !== gameWinner) {
+      message = `${roundWinner.getName()} wins the round, but ${gameWinner.getName()} wins the game!`;
+    } else if (roundWinner === gameWinner) {
+      message = `${roundWinner.getName()} wins the round and the game!`;
+    }
+    Display.showMessage(message);
   };
   
-  return { getSize, getMarks, getMarkAt, setSize, init, reset, isFull, isEmptyAt, setMarkAt, hasStraight, hasStraightSimple, minimax, clearMoves };
+  const reset = (e) => {
+    Display.clearPlayerTurnHighlight();
+    Display.hideMessage();
+    _board.reset();
+    Display.renderBoard(_board.getMarks());
+    Display.disableBoard();
+    Display.showSettings();
+    Display.updatePoints();
+    Display.toggleNameEditing();
+  };
+  
+  const isOver = () => _isOver;
+  const getCurrRound = () => _currRound;
+  const getMaxRound = () => _maxRound;
+  
+  return { init, initRound, end, reset, setBoardSize, handleBoardClick, addMark, isOver, getCurrRound, getMaxRound };
 })();
 
 // Display/DOM controller module
@@ -314,8 +404,10 @@ const Display = (() => {
   // TODO: get initial number of rounds from slider
   const _board = document.querySelector("#board");
   const _playerInfos = document.querySelectorAll(".player-info");
+  const _playerNames = document.querySelectorAll(".player-name");
   const _roundInfo = document.querySelector("#round-info");
   const _controlContainers = document.querySelectorAll(".control-container");
+  const _playerCounts = document.querySelectorAll(".player-count");
   const _playerChoiceCheckbox = document.querySelector("#player-choice");
   const _roundLabel = document.querySelector("#round-label");
   const _roundSlider = document.querySelector("#round-slider");
@@ -324,10 +416,13 @@ const Display = (() => {
   const _startButton = document.querySelector("#start-button");
   const _message = document.querySelector("#message");
   
-  const addListeners = () => {
+  const init = () => {
+    _playerChoiceCheckbox.addEventListener("input", highlightPlayerCount);
     _roundSlider.addEventListener("input", updateMaxRoundLabel);
     _boardSizeSlider.addEventListener("input", Game.setBoardSize);
     _startButton.addEventListener("click", Game.init);
+    
+    highlightPlayerCount();
   };
 
   const getBoardSize = () => {
@@ -368,15 +463,14 @@ const Display = (() => {
   };
   
   const enableBoard = () => {
-    _board.addEventListener("click", Game.addMark);
+    _board.addEventListener("click", Game.handleBoardClick);
   };
   
   const disableBoard = () => {
-    _board.removeEventListener("click", Game.addMark);
+    _board.removeEventListener("click", Game.handleBoardClick);
   };
   
-  const renderBoard = () => {
-    let marks = Board.getMarks();
+  const renderBoard = (marks) => {
     let cells = _board.querySelectorAll(".board-cell");
     for (let i = 0; i < marks.length; i++) {
       cells[i].textContent = marks[i];
@@ -397,6 +491,32 @@ const Display = (() => {
     });
     _roundInfo.style.setProperty("display", "block");
     switchToResetButton();
+  };
+
+  const highlightPlayerCount = () => {
+    let onIndex = _playerChoiceCheckbox.checked ? 1 : 0;
+    let offIndex = !_playerChoiceCheckbox.checked ? 1 : 0;
+    _playerCounts[onIndex].classList.add("player-count--active");
+    if (_playerCounts[offIndex].classList.contains("player-count--active")) {
+      _playerCounts[offIndex].classList.remove("player-count--active");
+    }
+  };
+
+  const highlightPlayerTurn = (isPlayerXTurn) => {
+    let onIndex = isPlayerXTurn ? 0 : 1;
+    let offIndex = !isPlayerXTurn ? 0 : 1;
+    _playerNames[onIndex].classList.add("player-name--active");
+    if (_playerNames[offIndex].classList.contains("player-name--active")) {
+      _playerNames[offIndex].classList.remove("player-name--active");
+    }
+  };
+
+  const clearPlayerTurnHighlight = () => {
+    _playerNames.forEach(playerName => {
+      if (playerName.classList.contains("player-name--active")) {
+        playerName.classList.remove("player-name--active");
+      }
+    });
   };
 
   const switchToStartButton = () => {
@@ -431,6 +551,11 @@ const Display = (() => {
     _playerInfos.forEach(playerInfo => {
       let playerName = playerInfo.firstElementChild;
       playerName.setAttribute("contenteditable", (!playerName.isContentEditable).toString());
+      if (playerName.isContentEditable && playerName.classList.contains("player-name--hover-disabled")) {
+        playerName.classList.remove("player-name--hover-disabled");
+      } else {
+        playerName.classList.add("player-name--hover-disabled");
+      }
     });
   };
 
@@ -444,29 +569,12 @@ const Display = (() => {
     return !_playerChoiceCheckbox.checked;
   };
   
-  return { addListeners, getBoardSize, setBoardSize, getMaxRound, setMaxRound, setRound,
+  return { init, getBoardSize, setBoardSize, getMaxRound, setMaxRound, setRound,
      enableBoard, disableBoard, renderBoard, showSettings, hideSettings, updatePoints,
+     highlightPlayerCount, highlightPlayerTurn, clearPlayerTurnHighlight,
      switchToStartButton, switchToResetButton, showMessage, hideMessage, toggleNameEditing,
      getPlayerNames, isAgainstAI };
 })();
 
-// Player factory function
-const Player = (mark) => {
-  const _mark = mark;
-  let _name;
-  let _points = 0;
-  
-  const getMark = () => _mark;
-  const getName = () => _name;
-  const setName = (name) => _name = name;
-  const getPoints = () => _points;
-  const addPoint = () => _points++;
-  const resetPoints = () => _points = 0;
-  
-  return { getMark, getName, setName, getPoints, addPoint, resetPoints };
-};
-
-// Game logic is driven by player input
-const playerX = Player(playerMarks.X);
-const playerO = Player(playerMarks.O);
-Display.addListeners();
+Display.init();
+           
